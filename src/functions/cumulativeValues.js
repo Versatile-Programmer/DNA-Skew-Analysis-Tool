@@ -9,14 +9,14 @@ export function CalculateSkew(g, c) {
 export function calculateCumulative(result1) {
 
     let cum_val = 0;
-    let Cumlative_value = [] //to store cumlative val
+    let Cumulative_value = [] //to store cumulative val
     for (let i = 0; i < result1.length; i++) {
         cum_val = cum_val + result1[i];
-        Cumlative_value.push(cum_val);
+        Cumulative_value.push(cum_val);
 
     }
 
-    console.log(Cumlative_value)
-    return Cumlative_value;
+    console.log(Cumulative_value)
+    return Cumulative_value;
 }
 

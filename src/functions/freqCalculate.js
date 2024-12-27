@@ -1,6 +1,6 @@
 export function freqCalculate(segment)
 {
-    let atcg={
+    let actg={
         aCnt:0,
         tCnt:0,
         cCnt:0,
@@ -10,14 +10,14 @@ export function freqCalculate(segment)
     for (let index = 0; index < segment.length; index++) {
             let temp=segment.charAt(index).toLowerCase()
         if(temp==='a')
-            atcg.aCnt++
+            actg.aCnt++
         else if(temp==='t')
-            atcg.tCnt++
+            actg.tCnt++
         else if(temp==='c')
-            atcg.cCnt++
+            actg.cCnt++
         else if(temp==='g')
-            atcg.gCnt++
+            actg.gCnt++
     }
-    return atcg;                                                                                                                                                                     
+    return actg;                                                                                                                                                                     
 
 }
