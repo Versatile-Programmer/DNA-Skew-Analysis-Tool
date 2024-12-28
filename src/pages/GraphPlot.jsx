@@ -1,8 +1,12 @@
+// GraphPlot.js
 import React from 'react';
 import Plot from 'react-plotly.js';
 
 const GraphPlot = ({ noOfSegments, yValues, title }) => {
-  console.log(title);
+  if (!yValues.length) {
+    return <p className="text-center text-gray-300">No data available to plot.</p>;
+  }
+
   const xValues = Array.from({ length: noOfSegments }, (_, i) => i + 1);
 
   return (
@@ -22,17 +26,10 @@ const GraphPlot = ({ noOfSegments, yValues, title }) => {
           ]}
           layout={{
             autosize: true,
-            title: '',
             paper_bgcolor: 'rgba(0,0,0,0)',
             plot_bgcolor: 'rgba(0,0,0,0)',
-            xaxis: {
-              title: 'Segment Number',
-              color: 'white',
-            },
-            yaxis: {
-              title: 'Skew Cumulative Values',
-              color: 'white',
-            },
+            xaxis: { title: 'Segment Number', color: 'white' },
+            yaxis: { title: 'Skew Cumulative Values', color: 'white' },
           }}
           config={{
             scrollZoom: true,

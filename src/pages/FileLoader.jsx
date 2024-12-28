@@ -8,15 +8,13 @@ import Navbar from './Navbar';
 
 function FileLoader() {
   const location = useLocation();
-  const { file, segments, label, fileInfo } = location.state;
-  const [selectedOption, setSelectedOption] = useState({ label, path: '' });
+  const { file, fileInfo } = location.state;
+
+  const [segments, setSegments] = useState([]);
+  const [selectedOption, setSelectedOption] = useState({ label: 'G-C Graph Viewer', path: '' });
   const [cumulativeArray, setCumulativeArray] = useState([]);
-  const [extremes, setExtremes] = useState({
-    maxSegment: null,
-    maxValue: null,
-    minSegment: null,
-    minValue: null,
-  });
+  const [extremes, setExtremes] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const options = [
     { label: 'G-C Graph Viewer', key: 'gc' },
@@ -27,6 +25,7 @@ function FileLoader() {
     { label: 'A-C Graph Viewer', key: 'ac' },
   ];
 
+  // Divide content into segments of 100 characters
   const divideIntoSegments = (content) => {
     const lines = content.split('\n');
     const sequence = lines.slice(1).join('').trim().toUpperCase();
@@ -37,6 +36,7 @@ function FileLoader() {
     return segments;
   };
 
+  // Calculate cumulative data based on skew and selected graph type
   const calculateCumulativeData = (segments, label) => {
     const skewArray = segments.map((segment) => {
       const result = freqCalculate(segment);
@@ -60,48 +60,55 @@ function FileLoader() {
     return calculateCumulative(skewArray);
   };
 
+  // Process file and calculate data
   useEffect(() => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const content = e.target.result;
-        const segments = divideIntoSegments(content);
-        if (segments.length > 0) {
-          const cumulativeData = calculateCumulativeData(segments, selectedOption.label);
-          const { maxSegment, maxValue, minSegment, minValue } = findMaxAndMinSegments(cumulativeData);
-          setCumulativeArray(cumulativeData);
-          setExtremes({ maxSegment, maxValue, minSegment, minValue });
-        }
+        const content = e.target.result.replace(/\r\n|\r/g, '\n');
+        const fileSegments = divideIntoSegments(content);
+        setSegments(fileSegments);
       };
       reader.readAsText(file);
     }
-  }, [file, selectedOption]);
+  }, [file]);
+
+  // Update cumulative data and extremes when segments or selected option changes
+  useEffect(() => {
+    if (segments.length > 0) {
+      setIsLoading(true); // Start loading
+      const cumulativeData = calculateCumulativeData(segments, selectedOption.label);
+      const { maxSegment, maxValue, minSegment, minValue } = findMaxAndMinSegments(cumulativeData);
+      setCumulativeArray(cumulativeData);
+      setExtremes({ maxSegment, maxValue, minSegment, minValue });
+      setIsLoading(false); // Stop loading
+    }
+  }, [segments, selectedOption]);
+
+  const handleOptionChange = (option) => {
+    setSelectedOption(option);
+  };
 
   return (
     <div className="bg-gray-900 text-white min-h-screen">
-      <Navbar
-        options={options}
-        onOptionSelect={(option) => setSelectedOption(option)}
-      />
+      <Navbar options={options} onOptionSelect={handleOptionChange} />
       <div className="flex flex-col items-center justify-center p-4">
         <h1 className="text-2xl font-bold mb-4">{selectedOption.label}</h1>
         <div className="w-full max-w-3xl">
-          <GraphPlot
-            noOfSegments={segments}
-            yValues={cumulativeArray}
-            title={fileInfo}
-          />
-          <div className="w-full max-w-3xl mt-6 text-center text-lg">
-            <p>
-              <strong>Max Segment:</strong> {extremes.maxSegment} with Cumulative Value {extremes.maxValue}
-            </p>
-            <p>
-              <strong>Min Segment:</strong> {extremes.minSegment} with Cumulative Value {extremes.minValue}
-            </p>
-          </div>
+          {isLoading ? (
+            <p className="text-center text-gray-300">Loading data...</p>
+          ) : (
+            <>
+              <GraphPlot noOfSegments={segments.length} yValues={cumulativeArray} title={fileInfo} />
+              <div className="w-full max-w-3xl mt-6 text-center text-lg">
+                <p><strong>Max Segment:</strong> {extremes.maxSegment} with Cumulative Value {extremes.maxValue}</p>
+                <p><strong>Min Segment:</strong> {extremes.minSegment} with Cumulative Value {extremes.minValue}</p>
+              </div>
+            </>
+          )}
         </div>
         <div className="w-full max-w-3xl mt-6 text-center text-lg">
-          <span className="font-semibold">Total Segments:</span> {segments}
+          <span className="font-semibold">Total Segments:</span> {segments.length}
         </div>
       </div>
     </div>

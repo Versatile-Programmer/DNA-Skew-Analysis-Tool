@@ -1,36 +1,51 @@
+// HomePage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function HomePage() {
   const navigate = useNavigate();
-  const [file, setFile] = useState(null); // Store the uploaded file
-  const [fileInfo, setFileInfo] = useState(""); // Store file info (optional)
-  const [segments, setSegments] = useState(0); // Store number of segments
+  const [file, setFile] = useState(null);
+  const [fileInfo, setFileInfo] = useState("");
+  const [segments, setSegments] = useState(0);
 
   const options = [
-    { label: 'G-C Graph Viewer', path: '/gc' },
-    { label: 'A-T Graph Viewer', path: '/at' },
-    { label: 'A-G Graph Viewer', path: '/ag' },
-    { label: 'T-C Graph Viewer', path: '/tc' },
-    { label: 'T-G Graph Viewer', path: '/tg' },
-    { label: 'A-C Graph Viewer', path: '/ac' },
+    { label: 'G-C Skew Viewer', path: '/gc' },
+    { label: 'A-T Skew Viewer', path: '/at' },
+    { label: 'A-G Skew Viewer', path: '/ag' },
+    { label: 'T-C Skew Viewer', path: '/tc' },
+    { label: 'T-G Skew Viewer', path: '/tg' },
+    { label: 'A-C Skew Viewer', path: '/ac' },
   ];
 
   const onFileUpload = (event) => {
     const uploadedFile = event.target.files[0];
+    if (!uploadedFile) {
+      alert('No file selected!');
+      return;
+    }
     setFile(uploadedFile);
-    if (uploadedFile) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const content = reader.result;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const content = reader.result.replace(/\r\n|\r/g, '\n');  // Normalize line endings
         const lines = content.split('\n');
-        setFileInfo(lines[0]); // the first line of the file
+        if (lines.length < 2) {
+          throw new Error("File format is invalid. Missing sequence data.");
+        }
+        setFileInfo(lines[0]);
         const sequence = lines.slice(1).join("").trim().toUpperCase();
+        if (!sequence.match(/^[ACGT]+$/)) {
+          throw new Error("Sequence contains invalid characters.");
+        }
         const numSegments = Math.ceil(sequence.length / 100);
         setSegments(numSegments);
-      };
-      reader.readAsText(uploadedFile);
-    }
+      } catch (err) {
+        alert(err.message);
+        setFile(null);
+      }
+    };
+    reader.readAsText(uploadedFile);
   };
 
   const handleSubmit = (path, label) => {
@@ -38,29 +53,51 @@ function HomePage() {
       alert('Please upload a file first!');
       return;
     }
-    navigate(`${path}`, { state: { file, segments, label,fileInfo } });
+    navigate(`${path}`, { state: { file, segments, label, fileInfo } });
   };
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl font-bold mb-8 text-center">ATGC Graph Calculator</h1>
-      <input
-        type="file"
-        accept=".txt"
-        onChange={onFileUpload}
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600 mb-6"
-      />
-      {/* {fileInfo && <p className="text-gray-300">File info: {fileInfo}</p>} */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-3xl">
-        {options.map((option, index) => (
-          <button
-            key={index}
-            onClick={() => handleSubmit(option.path, option.label)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline"
-          >
-            {option.label}
-          </button>
-        ))}
+    <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="max-w-4xl w-full">
+        <h1 className="text-5xl font-extrabold text-center mb-10 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+          DNA Skew Analysis Tool
+        </h1>
+
+        <div className="bg-gray-800 bg-opacity-70 backdrop-blur-md p-8 rounded-xl shadow-lg mb-12">
+          <p className="text-gray-300 mb-6 text-lg">
+            This tool allows you to visualize the skew between nucleotide pairs in a DNA sequence. Upload a sequence file and choose a skew type to generate a graph.
+          </p>
+          <p className="text-gray-300 mb-4">
+            DNA is made up of sequences of four nucleotides: Adenine (A), Thymine (T), Guanine (G), and Cytosine (C). Understanding the distribution of these nucleotides within a sequence is crucial for identifying patterns such as gene density, GC-content, and other biological phenomena.
+          </p>
+          <p className="text-gray-300">
+            Using this tool, you can upload a DNA sequence file, segment it, and visualize the nucleotide pair skew through various graph viewers. These graphs are useful in bioinformatics research and can provide insights into genomic structure and function.
+          </p>
+        </div>
+
+        <div className="relative flex justify-center mb-8">
+          <label className="cursor-pointer bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-md shadow-md">
+            Upload DNA Sequence (.txt)
+            <input
+              id="file-upload"
+              type="file"
+              onChange={onFileUpload}
+              className="hidden"
+            />
+          </label>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {options.map((option, index) => (
+            <button
+              key={index}
+              onClick={() => handleSubmit(option.path, option.label)}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-75"
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
