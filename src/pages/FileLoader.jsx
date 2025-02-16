@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useLocation } from 'react-router-dom';
 import { freqCalculate } from '../functions/freqCalculate';
 import { CalculateSkew, calculateCumulative } from '../functions/cumulativeValues';
 import { findMaxAndMinSegments } from '../functions/Extremas';
-import GraphPlot from './GraphPlot';
-import Navbar from './Navbar';
+
+// Lazy load the components
+const GraphPlot = lazy(() => import('./GraphPlot'));
+const Navbar = lazy(() => import('./Navbar'));
 
 function FileLoader() {
   const location = useLocation();
@@ -91,7 +93,9 @@ function FileLoader() {
 
   return (
     <div className="bg-gray-900 text-white min-h-screen">
-      <Navbar options={options} onOptionSelect={handleOptionChange} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <Navbar options={options} onOptionSelect={handleOptionChange} />
+      </Suspense>
       <div className="flex flex-col items-center justify-center p-4">
         <h1 className="text-2xl font-bold mb-4">{selectedOption.label}</h1>
         <div className="w-full max-w-3xl">
@@ -99,7 +103,9 @@ function FileLoader() {
             <p className="text-center text-gray-300">Loading data...</p>
           ) : (
             <>
-              <GraphPlot noOfSegments={segments.length} yValues={cumulativeArray} title={fileInfo} />
+              <Suspense fallback={<div>Loading Graph...</div>}>
+                <GraphPlot noOfSegments={segments.length} yValues={cumulativeArray} title={fileInfo} ytitle ={selectedOption.label.split(" ")[0]}/>
+              </Suspense>
               <div className="w-full max-w-3xl mt-6 text-center text-lg">
                 <p><strong>Max Segment:</strong> {extremes.maxSegment} with Cumulative Value {extremes.maxValue}</p>
                 <p><strong>Min Segment:</strong> {extremes.minSegment} with Cumulative Value {extremes.minValue}</p>

@@ -1,6 +1,8 @@
-// HomePage.js
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { handleError } from '../utils';
+import { ToastContainer } from 'react-toastify';
+const FileLoader = lazy(() => import('./FileLoader')); // Lazy load FileLoader
 
 function HomePage() {
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ function HomePage() {
   const onFileUpload = (event) => {
     const uploadedFile = event.target.files[0];
     if (!uploadedFile) {
-      alert('No file selected!');
+      handleError("Please select a file.");
       return;
     }
     setFile(uploadedFile);
@@ -50,7 +52,7 @@ function HomePage() {
 
   const handleSubmit = (path, label) => {
     if (!file) {
-      alert('Please upload a file first!');
+      handleError('Please upload a file first!');
       return;
     }
     navigate(`${path}`, { state: { file, segments, label, fileInfo } });
@@ -77,7 +79,7 @@ function HomePage() {
 
         <div className="relative flex justify-center mb-8">
           <label className="cursor-pointer bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-md shadow-md">
-            Upload DNA Sequence (.txt)
+            Upload DNA Sequence
             <input
               id="file-upload"
               type="file"
@@ -99,6 +101,7 @@ function HomePage() {
           ))}
         </div>
       </div>
+      <ToastContainer/>
     </div>
   );
 }
