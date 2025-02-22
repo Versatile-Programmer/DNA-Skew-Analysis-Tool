@@ -4,12 +4,18 @@ import { handleError } from '../utils';
 import { ToastContainer } from 'react-toastify';
 const FileLoader = lazy(() => import('./FileLoader')); // Lazy load FileLoader
 
+
+/*************  ✨ Codeium Command 🌟  *************/
 function HomePage() {
+  // The navigate hook from react-router-dom allows us to programmatically navigate to a different route
   const navigate = useNavigate();
+
+  // State variables to store the uploaded file, file information, and the number of segments
   const [file, setFile] = useState(null);
   const [fileInfo, setFileInfo] = useState("");
   const [segments, setSegments] = useState(0);
 
+  // Define the options for the graph viewers
   const options = [
     { label: 'G-C Skew Viewer', path: '/gc' },
     { label: 'A-T Skew Viewer', path: '/at' },
@@ -19,30 +25,52 @@ function HomePage() {
     { label: 'A-C Skew Viewer', path: '/ac' },
   ];
 
+  // When a file is selected, this function is called to process the file
   const onFileUpload = (event) => {
+    // Get the uploaded file
     const uploadedFile = event.target.files[0];
+
+    // If no file was selected, display an error message
     if (!uploadedFile) {
       handleError("Please select a file.");
       return;
     }
+
+    // Set the file state to the uploaded file
     setFile(uploadedFile);
 
+    // Create a FileReader to read the file
     const reader = new FileReader();
     reader.onload = () => {
       try {
+       
+        
+        // Read the file contents and normalize the line endings
+        // Split the file into lines
         const content = reader.result.replace(/\r\n|\r/g, '\n');  // Normalize line endings
         const lines = content.split('\n');
+
+        // If the file has less than two lines, it's invalid
         if (lines.length < 2) {
           throw new Error("File format is invalid. Missing sequence data.");
         }
+
+        // Set the file information state to the first line of the file
         setFileInfo(lines[0]);
+
+        // Extract the sequence data from the file
         const sequence = lines.slice(1).join("").trim().toUpperCase();
+
+        // Validate the sequence data
         if (!sequence.match(/^[ACGT]+$/)) {
           throw new Error("Sequence contains invalid characters.");
         }
+
+        // Calculate the number of segments and set the state
         const numSegments = Math.ceil(sequence.length / 100);
         setSegments(numSegments);
       } catch (err) {
+        // Display an error message if there's a problem with the file
         alert(err.message);
         setFile(null);
       }
@@ -50,11 +78,15 @@ function HomePage() {
     reader.readAsText(uploadedFile);
   };
 
+  // When a button is clicked, navigate to the corresponding route
   const handleSubmit = (path, label) => {
+    // If no file was uploaded, display an error message
     if (!file) {
       handleError('Please upload a file first!');
       return;
     }
+
+    // Navigate to the graph viewer route with the file and other state variables as parameters
     navigate(`${path}`, { state: { file, segments, label, fileInfo } });
   };
 
@@ -105,5 +137,6 @@ function HomePage() {
     </div>
   );
 }
+/******  f7e33f54-5a11-4d25-bb05-e812254ebd48  *******/
 
 export default HomePage;
