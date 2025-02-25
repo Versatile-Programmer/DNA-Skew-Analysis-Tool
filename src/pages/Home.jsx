@@ -5,7 +5,7 @@ import { ToastContainer } from 'react-toastify';
 const FileLoader = lazy(() => import('./FileLoader')); // Lazy load FileLoader
 
 
-/*************  ✨ Codeium Command 🌟  *************/
+
 function HomePage() {
   // The navigate hook from react-router-dom allows us to programmatically navigate to a different route
   const navigate = useNavigate();
@@ -137,6 +137,6 @@ function HomePage() {
     </div>
   );
 }
-/******  f7e33f54-5a11-4d25-bb05-e812254ebd48  *******/
+
 
 export default HomePage;
